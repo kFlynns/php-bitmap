@@ -1,0 +1,19 @@
+{
+    "name": "k-flynns/php-bitmap",
+    "description": "A library to create bmp bitmap files from pixel buffers.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Erik Calov",
+            "email": "erik.calov@quokkabyte.org"
+        }
+    ],
+    "autoload": {
+        "psr-4": {"KFlynns\\PhpBitmap\\": "lib/"}
+    },
+    "require": {
+        "guzzlehttp/psr7": "*",
+        "psr/http-message": "^1.0"
+    }
+}
