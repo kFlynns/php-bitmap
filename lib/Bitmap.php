@@ -100,10 +100,6 @@ class Bitmap
      */
     protected function getBitmapHeader()
     {
-
-        // DWORD einen 32-Bit-vorzeichenlosen Integer   -> V
-        // LONG einen im Zweierkomplement kodierten 32-Bit-Integer -> l
-
         return pack(
             'VllvvVVllVV',
             self::BITMAP_HEADER_SIZE,

@@ -102,7 +102,7 @@ class Buffer
             throw new \Exception('The pixel is out of range.');
         }
         $this->memory->seek($whence);
-        $this->memory->write(pack('ccc', $blue, $green, $red));
+        $this->memory->write(pack('CCC', $blue, $green, $red));
     }
 
     /**
