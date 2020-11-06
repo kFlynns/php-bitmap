@@ -37,6 +37,13 @@ class Bitmap
      */
     public function __construct($width, $height)
     {
+
+        $this->integerToBinary(
+            -0xFF,
+            self::INT_SIZE_SHORT, [
+                'signed' => true
+            ]);
+
         $this->buffer = new Buffer(
             $width,
             $height,
@@ -81,26 +88,25 @@ class Bitmap
 
 
 
-    private function integerToBinary($integer, $size)
+    private function integerToBinary($integer, $size, array $options = [])
     {
         if(pow(2, $size) <= $size)
         {
             throw new \Exception('Integer "' . $integer . '" exceeds size of "' . $size . '" bits.');
         }
 
-        $positionValue = 16;
-        for($bytePosition = 0; $bytePosition < $size / 8; $bytePosition += 1)
+        $signed = $options['signed'] ?? false;
+
+        if($signed)
         {
-
-
-            print_r($positionValue  . "\n");
-
-            $positionValue *= $positionValue;
-
+            $sign = $integer < 0 ? 32768 : 0;
+            $integer = $integer >> 1;
+            //$integer = $integer | $sign;
         }
 
-die();
-        //print_r($integer);die();
+        print_r(  base_convert($integer, 10, 2) );
+        die();
+
 
     }
 
@@ -110,9 +116,10 @@ die();
      */
     public function output(StreamInterface $stream)
     {
-        $stream->write($this->getFileHeader());
-        $stream->write($this->getBitmapHeader());
-        $stream->write($this->buffer->getData());
+        foreach (['getFileHeader', 'getBitmapHeader', 'getData'] as $method)
+        {
+            $stream->write($this->{$method}());
+        }
     }
 
 }
