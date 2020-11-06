@@ -13,12 +13,21 @@ use Psr\Http\Message\StreamInterface;
 class Bitmap
 {
 
+    /** @var int 16 bit for short integers */
     const INT_SIZE_SHORT = 16;
+
+    /** @var int 32 bit for long integers */
     const INT_SIZE_LONG = 32;
-    const BITS_PER_PIXEL = 24;
+
+    /** @var int only 32 bits per pixel supported now */
+    const BITS_PER_PIXEL = 32;
+
+    /** @var int 14 bytes BITMAPFILEHEADER */
     const FILE_HEADER_SIZE = 0xE;
+
+    /** @var int 40 bytes BITMAPINFOHEADER */
     const BITMAP_HEADER_SIZE = 0x28;
-    const FILE_HEADER_MAGIC_WORD = 0x424D;
+
 
     /** @var Buffer */
     private $buffer;
@@ -29,6 +38,12 @@ class Bitmap
     /** @var int  */
     private $fileSize;
 
+    /** @var int */
+    private $width;
+
+    /** @var int */
+    private $height;
+
     /**
      * Bitmap constructor.
      * @param int $width
@@ -37,12 +52,6 @@ class Bitmap
      */
     public function __construct($width, $height)
     {
-
-        $this->integerToBinary(
-            -0xFF,
-            self::INT_SIZE_SHORT, [
-                'signed' => true
-            ]);
 
         $this->buffer = new Buffer(
             $width,
@@ -54,6 +63,9 @@ class Bitmap
         $this->fileSize = self::FILE_HEADER_SIZE +
             self::BITMAP_HEADER_SIZE +
             $this->bufferSize;
+
+        $this->width = $width;
+        $this->height = $height;
 
     }
 
@@ -72,7 +84,14 @@ class Bitmap
      */
     protected function getFileHeader()
     {
-        return;    //. $this->integerToBinary($this->fileSize, self::INT_SIZE_LONG);
+        return pack(
+            'ccVVV',
+            0x42,
+            0x4D,
+            $this->fileSize,
+            0,
+            self::FILE_HEADER_SIZE + self::BITMAP_HEADER_SIZE
+        );
     }
 
     /**
@@ -81,33 +100,21 @@ class Bitmap
      */
     protected function getBitmapHeader()
     {
-        return '1';
-    }
 
+        // DWORD einen 32-Bit-vorzeichenlosen Integer   -> V
+        // LONG einen im Zweierkomplement kodierten 32-Bit-Integer -> l
 
-
-
-
-    private function integerToBinary($integer, $size, array $options = [])
-    {
-        if(pow(2, $size) <= $size)
-        {
-            throw new \Exception('Integer "' . $integer . '" exceeds size of "' . $size . '" bits.');
-        }
-
-        $signed = $options['signed'] ?? false;
-
-        if($signed)
-        {
-            $sign = $integer < 0 ? 32768 : 0;
-            $integer = $integer >> 1;
-            //$integer = $integer | $sign;
-        }
-
-        print_r(  base_convert($integer, 10, 2) );
-        die();
-
-
+        return pack(
+            'VllvvVVllVV',
+            self::BITMAP_HEADER_SIZE,
+            $this->width,
+            $this->height,
+            1,
+            self::BITS_PER_PIXEL,
+            0,
+            $this->bufferSize,
+            0, 0, 0, 0
+        );
     }
 
     /**
@@ -116,10 +123,11 @@ class Bitmap
      */
     public function output(StreamInterface $stream)
     {
-        foreach (['getFileHeader', 'getBitmapHeader', 'getData'] as $method)
+        foreach (['getFileHeader', 'getBitmapHeader'] as $method)
         {
             $stream->write($this->{$method}());
         }
+        $stream->write($this->getBuffer()->getData());
     }
 
 }

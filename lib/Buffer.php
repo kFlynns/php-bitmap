@@ -23,6 +23,9 @@ class Buffer
     /** @var int */
     private $bitsPerPixel;
 
+    /** @var int */
+    private $width;
+
     /**
      * Buffer constructor - fill with white.
      * @param int $width
@@ -34,10 +37,12 @@ class Buffer
 
         $this->bitsPerPixel = $bitsPerPixel;
         $this->size = $width * $height * ($bitsPerPixel / 8);
+        $this->width = $width;
+
         $this->memory = new Stream(
             fopen(
                 'php://temp/maxmemory:' . self::MAX_RAM,
-                'a'
+                'w+'
             )
         );
 
@@ -78,7 +83,7 @@ class Buffer
      */
     protected function getWhence($x, $y)
     {
-        return $x * $y * ($this->bitsPerPixel / 8) - ($this->bitsPerPixel / 8);
+        return ($y * $this->width + $x) * ($this->bitsPerPixel / 8);
     }
 
 
@@ -97,7 +102,7 @@ class Buffer
             throw new \Exception('The pixel is out of range.');
         }
         $this->memory->seek($whence);
-        $this->memory->write(pack('CCC', $blue, $green, $red));
+        $this->memory->write(pack('ccc', $blue, $green, $red));
     }
 
     /**
@@ -107,11 +112,13 @@ class Buffer
      */
     public function getPixel($x, $y)
     {
+
         $whence = $this->getWhence($x, $y);
         if($whence >= $this->size)
         {
             throw new \Exception('The pixel is out of range.');
         }
+
         $this->memory->seek($whence);
         $pixel = $this->memory->read(($this->bitsPerPixel / 8));
 

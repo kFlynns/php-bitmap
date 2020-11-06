@@ -2,13 +2,22 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-
-$bitmap = new \KFlynns\PhpBitmap\Bitmap(10, 10);
-
-
-$bitmap->getBuffer()->setPixel(9,10, 0, 0, 0);
+$bitmap = new \KFlynns\PhpBitmap\Bitmap(64, 64);
 
 
-$stream = new \GuzzleHttp\Psr7\Stream(fopen('php://output', 'a+'));
+for($y = 0; $y < 64; $y++)
+{
+    for($x = 0; $x < 64; $x++)
+    {
+        $bitmap->getBuffer()->setPixel($x, $y, random_int(0, 255),  random_int(0, 255),  random_int(0, 255));
+    }
+}
+
+
+
+
+
+header('Content-Type: image/bmp');
+$stream = new \GuzzleHttp\Psr7\Stream(fopen('php://output', 'w+'));
 $bitmap->output($stream);
 $stream->close();
